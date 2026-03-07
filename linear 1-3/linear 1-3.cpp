@@ -1,355 +1,303 @@
 ﻿#include <iostream>
 #include <vector>
 #include <string>
+#include <cmath>
 
 using namespace std;
 
 //////////////////////////////////////////////////////////////
-// Member 1 — Helper Functions
+// Mohamed Othman
+// Helper functions + Parsing equations
 //////////////////////////////////////////////////////////////
 
-double my_abs(double x) {
-    return x < 0 ? -x : x;
+double my_stod(string s) {
+    return atof(s.c_str());
 }
 
-int my_stoi(const string& s) {
-    int res = 0, sign = 1;
-    bool started = false;
-
-    for (char c : s) {
-        if (c == '-' && !started) {
-            sign = -1;
-            started = true;
-        }
-        else if (c >= '0' && c <= '9') {
-            res = res * 10 + (c - '0');
-            started = true;
-        }
-        else if (started) break;
-    }
-
-    return res * sign;
+string clean_eq(string s) {
+    string r = "";
+    for (char c : s)
+        if (c != ' ') r += c;
+    return r;
 }
 
-double my_stod(const string& s) {
-    double res = 0, div = 1;
-    int sign = 1, i = 0;
-    bool frac = false;
+//////////////////////////////////////////////////////////////
+// Hossam Hassan
+// Variables and Equation Structure
+//////////////////////////////////////////////////////////////
 
-    if (s[i] == '-') {
-        sign = -1;
-        i++;
-    }
+vector<string> vars;
 
-    for (; i < s.length(); i++) {
-        if (s[i] == '.') {
-            frac = true;
-        }
-        else if (s[i] >= '0' && s[i] <= '9') {
-            res = res * 10 + (s[i] - '0');
-            if (frac) div *= 10;
-        }
-    }
-
-    return sign * (res / div);
-}
-
-vector<string> split(const string& s) {
-    vector<string> res;
-    string w = "";
-
-    for (char c : s) {
-        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-            if (w != "") {
-                res.push_back(w);
-                w = "";
-            }
-        }
-        else {
-            w += c;
-        }
-    }
-
-    if (w != "") res.push_back(w);
-
-    return res;
-}
-
-int find_idx(const vector<string>& v, const string& val) {
-    for (int i = 0; i < v.size(); i++) {
-        if (v[i] == val) return i;
-    }
+int find_var(string v) {
+    for (int i = 0; i < vars.size(); i++)
+        if (vars[i] == v)
+            return i;
     return -1;
 }
 
-//////////////////////////////////////////////////////////////
-// Member 2 — Variables & Equation Struct + Parsing
-//////////////////////////////////////////////////////////////
-
-vector<string> all_vars;
-
 void add_var(string v) {
-    if (find_idx(all_vars, v) == -1) {
-
-        all_vars.push_back(v);
-
-        // Sorting variables alphabetically
-        for (int i = 0; i < all_vars.size(); i++) {
-            for (int j = i + 1; j < all_vars.size(); j++) {
-                if (all_vars[j] < all_vars[i]) {
-                    string tmp = all_vars[i];
-                    all_vars[i] = all_vars[j];
-                    all_vars[j] = tmp;
-                }
-            }
-        }
-    }
+    if (find_var(v) == -1)
+        vars.push_back(v);
 }
 
 struct Equation {
+
     vector<string> names;
     vector<double> coeffs;
     double constant = 0;
 
-    void add_term(string name, double coeff) {
+    void add_term(string name, double c) {
 
         if (name == "") {
-            constant += coeff;
+            constant += c;
             return;
         }
 
-        int idx = find_idx(names, name);
-
-        if (idx == -1) {
-            names.push_back(name);
-            coeffs.push_back(coeff);
-        }
-        else {
-            coeffs[idx] += coeff;
-        }
-
         add_var(name);
+
+        for (int i = 0; i < names.size(); i++) {
+            if (names[i] == name) {
+                coeffs[i] += c;
+                return;
+            }
+        }
+
+        names.push_back(name);
+        coeffs.push_back(c);
     }
 
-    double get_val(string name) const {
-        int idx = find_idx(names, name);
-        return (idx == -1) ? 0.0 : coeffs[idx];
+    double get(string name) {
+
+        for (int i = 0; i < names.size(); i++)
+            if (names[i] == name)
+                return coeffs[i];
+
+        return 0;
     }
 };
 
 vector<Equation> eqs;
 
-Equation parse_eq(string s) {
+//////////////////////////////////////////////////////////////
+// Mohamed Othman
+// Parse equation
+//////////////////////////////////////////////////////////////
 
-    Equation eq;
-    string clean = "";
+Equation parse(string s) {
 
-    for (char c : s) {
-        if (c != ' ' && c != '\r')
-            clean += c;
-    }
+    Equation e;
 
-    int eq_pos = -1;
-    for (int i = 0; i < clean.length(); i++) {
-        if (clean[i] == '=') eq_pos = i;
-    }
+    s = clean_eq(s);
 
-    double C = 0;
+    int pos = s.find('=');
 
-    auto parse_side = [&](string str, int side_mult) {
+    string L = s.substr(0, pos);
+    string R = s.substr(pos + 1);
 
-        int p = 0;
+    int i = 0;
 
-        while (p < str.length()) {
+    while (i < L.size()) {
 
-            int sign = 1;
+        int sign = 1;
 
-            if (str[p] == '+') {
-                sign = 1;
-                p++;
-            }
-            else if (str[p] == '-') {
-                sign = -1;
-                p++;
-            }
-
-            string num_str = "";
-            string var_str = "";
-
-            while (p < str.length() &&
-                ((str[p] >= '0' && str[p] <= '9') || str[p] == '.')) {
-                num_str += str[p++];
-            }
-
-            while (p < str.length() &&
-                str[p] != '+' && str[p] != '-') {
-                var_str += str[p++];
-            }
-
-            double coeff = (num_str == "") ? 1.0 : my_stod(num_str);
-            coeff *= sign * side_mult;
-
-            if (var_str == "")
-                C += coeff;
-            else
-                eq.add_term(var_str, coeff);
+        if (L[i] == '+') i++;
+        else if (L[i] == '-') {
+            sign = -1;
+            i++;
         }
-        };
 
-    if (eq_pos != -1) {
-        parse_side(clean.substr(0, eq_pos), 1);
-        parse_side(clean.substr(eq_pos + 1), -1);
+        string num = "";
+        string var = "";
+
+        while (i < L.size() && (isdigit(L[i]) || L[i] == '.'))
+            num += L[i++];
+
+        while (i < L.size() && L[i] != '+' && L[i] != '-')
+            var += L[i++];
+
+        double c = (num == "" ? 1 : my_stod(num));
+        c *= sign;
+
+        e.add_term(var, c);
     }
-    else {
-        parse_side(clean, 1);
-    }
 
-    eq.constant = -C;
+    e.constant = my_stod(R);
 
-    return eq;
+    return e;
 }
 
 //////////////////////////////////////////////////////////////
-// Member 3 — Matrix & Determinant
+// Hazem
+// Matrix creation and Determinant calculation
 //////////////////////////////////////////////////////////////
 
-vector<vector<double>> get_matrix() {
+vector<vector<double>> matrix() {
 
-    vector<vector<double>> M(
-        eqs.size(),
-        vector<double>(all_vars.size(), 0)
-    );
+    vector<vector<double>> M(eqs.size(), vector<double>(vars.size()));
 
-    for (int i = 0; i < eqs.size(); i++) {
-        for (int j = 0; j < all_vars.size(); j++) {
-            M[i][j] = eqs[i].get_val(all_vars[j]);
-        }
-    }
+    for (int i = 0; i < eqs.size(); i++)
+        for (int j = 0; j < vars.size(); j++)
+            M[i][j] = eqs[i].get(vars[j]);
 
     return M;
 }
 
-double get_det(vector<vector<double>> a) {
+double det(vector<vector<double>> a) {
 
     int n = a.size();
 
     if (n == 0 || a[0].size() != n)
         return 0;
 
-    double det = 1;
+    double d = 1;
 
     for (int i = 0; i < n; i++) {
 
         int pivot = i;
 
-        for (int j = i + 1; j < n; j++) {
-            if (my_abs(a[j][i]) > my_abs(a[pivot][i]))
+        for (int j = i; j < n; j++)
+            if (fabs(a[j][i]) > fabs(a[pivot][i]))
                 pivot = j;
-        }
 
-        if (my_abs(a[pivot][i]) < 1e-9)
+        if (fabs(a[pivot][i]) < 1e-9)
             return 0;
 
-        if (i != pivot) {
-            vector<double> tmp = a[i];
-            a[i] = a[pivot];
-            a[pivot] = tmp;
-            det = -det;
-        }
+        swap(a[i], a[pivot]);
 
-        det *= a[i][i];
+        if (i != pivot)
+            d = -d;
+
+        d *= a[i][i];
 
         for (int j = i + 1; j < n; j++) {
+
             double f = a[j][i] / a[i][i];
-            for (int k = i; k < n; k++) {
+
+            for (int k = i; k < n; k++)
                 a[j][k] -= f * a[i][k];
-            }
         }
     }
 
-    return det;
+    return d;
 }
 
 //////////////////////////////////////////////////////////////
-// Member 4 — Read data from Users (Main)
+// Mohamed Wagdy
+// Commands processing + Printing + Solve
 //////////////////////////////////////////////////////////////
+
+void print_eq(Equation e) {
+
+    bool first = true;
+
+    for (string v : vars) {
+
+        double c = e.get(v);
+
+        if (c == 0) continue;
+
+        if (!first && c > 0)
+            cout << "+";
+
+        cout << c << v;
+
+        first = false;
+    }
+
+    cout << "=" << e.constant << "\n";
+}
 
 int main() {
 
+    int n;
+    cin >> n;
+    cin.ignore();
+
     string line;
-    int n = 0;
 
-    // Read number of equations
-    while (getline(cin, line)) {
-
-        vector<string> fl = split(line);
-
-        if (!fl.empty()) {
-            n = my_stoi(fl[0]);
-            if (n > 0) break;
-        }
+    for (int i = 0; i < n; i++) {
+        getline(cin, line);
+        eqs.push_back(parse(line));
     }
 
-    if (n == 0) return 0;
-
-    // Read equations
-    int eq_count = 0;
-
-    while (eq_count < n && getline(cin, line)) {
-
-        if (split(line).empty())
-            continue;
-
-        eqs.push_back(parse_eq(line));
-        eq_count++;
-    }
-
-    // Command loop
     while (getline(cin, line)) {
 
-        vector<string> args = split(line);
-        if (args.empty()) continue;
+        if (line == "quit")
+            break;
 
-        string cmd = args[0];
-
-        if (cmd == "quit") break;
-
-        else if (cmd == "num_vars") {
-            cout << all_vars.size() << "\n";
+        else if (line == "num_vars") {
+            cout << vars.size() << "\n";
         }
 
-        else if (cmd == "equation" && args.size() > 1) {
-            print_eq(eqs[my_stoi(args[1]) - 1]);
+        else if (line.substr(0, 8) == "equation") {
+
+            int id = stoi(line.substr(9)) - 1;
+
+            print_eq(eqs[id]);
         }
 
-        else if (cmd == "D_value") {
-            cout << get_det(get_matrix()) << "\n";
+        else if (line.substr(0, 6) == "column") {
+
+            string v = line.substr(7);
+
+            for (int i = 0; i < eqs.size(); i++)
+                cout << eqs[i].get(v) << "\n";
         }
 
-        else if (cmd == "solve") {
+        else if (line.substr(0, 3) == "add") {
 
-            double D = get_det(get_matrix());
+            int a = line[4] - '1';
+            int b = line[6] - '1';
 
-            if (my_abs(D) < 1e-9) {
+            Equation r;
+
+            for (string v : vars)
+                r.add_term(v, eqs[a].get(v) + eqs[b].get(v));
+
+            r.constant = eqs[a].constant + eqs[b].constant;
+
+            print_eq(r);
+        }
+
+        else if (line.substr(0, 8) == "subtract") {
+
+            int a = line[9] - '1';
+            int b = line[11] - '1';
+
+            Equation r;
+
+            for (string v : vars)
+                r.add_term(v, eqs[a].get(v) - eqs[b].get(v));
+
+            r.constant = eqs[a].constant - eqs[b].constant;
+
+            print_eq(r);
+        }
+
+        else if (line == "D_value") {
+            cout << det(matrix()) << "\n";
+        }
+
+        else if (line == "solve") {
+
+            auto M = matrix();
+
+            double D = det(M);
+
+            if (fabs(D) < 1e-9) {
                 cout << "No Solution\n";
+                continue;
             }
-            else {
-                for (int j = 0; j < all_vars.size(); j++) {
 
-                    auto M = get_matrix();
+            for (int j = 0; j < vars.size(); j++) {
 
-                    for (int i = 0; i < n; i++) {
-                        M[i][j] = eqs[i].constant;
-                    }
+                auto T = M;
 
-                    cout << all_vars[j]
-                        << "="
-                        << get_det(M) / D
-                        << "\n";
-                }
+                for (int i = 0; i < T.size(); i++)
+                    T[i][j] = eqs[i].constant;
+
+                cout << vars[j] << "=" << det(T) / D << "\n";
             }
         }
     }
-
-    return 0;
 }
