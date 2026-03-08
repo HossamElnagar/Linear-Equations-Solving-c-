@@ -1,140 +1,147 @@
 # Linear Equations Solver (C++)
 
-A C++ console application that solves a system of linear equations using Determinant and Cramer's Rule.
+A C++ console application that solves systems of linear equations using **Determinant Calculation** and **Cramer's Rule**.
 
 ---
 
-## 👥 Team Members
+# Team Members
 
-1. Hossam Hassan Ismail Mohammad — 11183  
-   🔹 Read Data from Users (Main)
+1. Hossam Hassan Ismail — 11183  
+   Variables and Equation Structure
 
 2. Hazem Abdelaziz — 11182  
-   🔹 Matrix & Determinant
+   Matrix creation and Determinant calculation
 
-3. Mohammad Saeed Abdel-Haleem — 11185  
-   🔹 Helper Functions
+3. Mohamed Saeed Abdel-Haleem — 11185  
+   Parse equation and Helper functions + Parsing equations
 
-4. Mohammad Mahmoud Abdel Fattah — 11184  
-   🔹 Variables & Equation
+4. Mohamed Mahmoud Abdel Fattah — 11184  
+   
 
-5. Mohammad Wagdi Mohammad — 11222  
-   🔹 Variables & Equation
-
----
-
-## 📖 Project Description
-
-This project:
-
-- Reads a number of linear equations from the user
-- Parses equations dynamically
-- Extracts variables automatically
-- Builds the coefficient matrix
-- Calculates the determinant
-- Solves the system using **Cramer's Rule**
-- Supports multiple commands after input
+5. Mohamed Wagdy Mohamed — 11222  
+   Commands processing + Printing + Solve
 
 ---
 
-## 🧠 Features
+# Project Description
 
-✔ Custom implementations of:
-- `stoi`
-- `stod`
-- `abs`
-- `split`
+This program reads a system of linear equations and performs different operations on them.
 
-✔ Automatic variable detection  
-✔ Determinant calculation using Gaussian elimination  
-✔ Command-based interaction  
-✔ Handles floating point equations  
+The program can:
+
+- Read equations from the user
+- Detect variables automatically
+- Build the coefficient matrix
+- Calculate the determinant
+- Solve the system using **Cramer's Rule**
+- Execute several commands on equations
 
 ---
 
-## 🛠 How It Works
+# Features
 
-### Step 1 — Input number of equations
+- Automatic variable detection
+- Support for decimal coefficients
+- Determinant calculation using **Gaussian Elimination**
+- Equation addition and subtraction
+- Command-based interaction
+- Handles multiple equations dynamically
 
-### Step 2 — Enter equations
+---
 
-### Step 3 — Use commands
-
-Available commands:
+# Supported Commands
 
 | Command | Description |
-|---------|------------|
+|------|------|
 | `num_vars` | Print number of variables |
 | `equation i` | Print equation number i |
-| `D_value` | Print determinant value |
-| `solve` | Solve the system |
+| `column x` | Print coefficients of variable x |
+| `add i j` | Add equation i and j |
+| `subtract i j` | Subtract equation j from i |
+| `D_value` | Print determinant |
+| `solve` | Solve system using Cramer's Rule |
 | `quit` | Exit program |
 
 ---
 
-## 🔢 Example Run
+# Example
+
+Input
+
 3
 2x+3y-z=5
 x-y+4z=6
 3x+2y+z=7
 solve
 
-Output:
-x=...
-y=...
-z=...
 
-If determinant = 0:
+Output
+
+
+If determinant = 0
+
+
 
 ---
 
-## 🧮 Mathematical Method Used
+# Mathematical Method
 
-The project uses:
+The system is solved using **Cramer's Rule**
 
-- Matrix representation of linear systems
-- Determinant calculation
-- Cramer's Rule for solving
+Steps:
+
+1. Convert equations to matrix form
+2. Compute determinant **D**
+3. Replace each column with constants
+4. Compute determinants **Dx, Dy, Dz**
+5. Calculate solution
+
+x = Dx / D
+y = Dy / D
+z = Dz / D
+
+
 
 If:
 
-D ≠ 0 → Unique Solution  
-D = 0 → No Solution  
+D = 0
+
+
+
+The system has **no unique solution**.
 
 ---
 
-## 💻 Technologies Used
+# Technologies Used
 
 - C++
 - STL (vector, string, iostream)
 
 ---
 
-## 📂 Project Structure
+# Compile and Run
 
-- Helper Functions
-- Variables & Equation Parser
-- Matrix & Determinant
-- Main Program & Command System
+Using **g++**
 
----
+g++ main.cpp -o solver
+./solver
 
-## 🚀 How to Compile
 
-Using g++:
 
-Or open with Visual Studio and run.
+Or run using **Visual Studio** or **CodeBlocks**.
 
 ---
 
-## 📌 Notes
+# Notes
 
-- Variables are sorted alphabetically automatically.
-- Supports decimal coefficients.
-- Ignores extra spaces in equations.
+- Spaces inside equations are ignored.
+- Variables are detected automatically.
+- Supports floating point numbers.
 
 ---
 
-## 📜 License
+# License
 
-This project is for educational purposes.
+This project is created for educational purposes.
+
+
